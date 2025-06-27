@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Registered Users</h2>
+
+  <div>
+    <button onclick="filterUsers(false)">Show All</button>
+    <button onclick="filterUsers(true)">Show Selected Candidates</button>
+    <button onclick="clearAllUsers()">🗑️ Clear All Users</button> <!-- ✅ Added button -->
+  </div>
+
+  <table border="1" id="userTable">
+    <thead>
+      <tr><th>Name</th><th>Phone</th><th>Age</th><th>Email</th><th>Status</th></tr>
+    </thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
+
+  <!-- Load EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <script>
+    emailjs.init('9tzjSSbhebwaKBQhJ'); // Your actual EmailJS public key
+
+    let users = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+      users = JSON.parse(localStorage.getItem("users")) || [];
+      users = removeDuplicates(users);
+      localStorage.setItem("users", JSON.stringify(users));
+      showUsers(users);
+    });
+
+    function showUsers(data) {
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
+
+      data.forEach((user, index) => {
+        const row = document.createElement("tr");
+
+        const buttonText = user.selected ? "Selected" : "Not Selected";
+        const buttonClass = user.selected ? "selected" : "not-selected";
+
+        const actionButton = `<button class="${buttonClass}" onclick="toggleSelect(${index})">${buttonText}</button>`;
+
+        row.innerHTML = `
+          <td>${user.name}</td>
+          <td>${user.phone}</td>
+          <td>${user.age}</td>
+          <td>${user.email}</td>
+          <td>${actionButton}</td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    }
+
+    function removeDuplicates(userList) {
+      const seen = new Set();
+      return userList.filter(user => {
+        const key = user.name.toLowerCase().trim() + "|" + user.email.toLowerCase().trim();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    window.toggleSelect = function(index) {
+      const user = users[index];
+
+      if (!user.selected) {
+        user.selected = true;
+        emailjs.send("service_3goc4qa", "audition_select_template", {
+          name: user.name,
+          to_email: user.email
+        }).then(() => alert("Email sent to " + user.email));
+      } else {
+        user.selected = false;
+      }
+
+      localStorage.setItem("users", JSON.stringify(users));
+      showUsers(users);
+    };
+
+    window.filterUsers = function(showOnlySelected) {
+      if (showOnlySelected) {
+        const selected = users.filter(u => u.selected);
+        showUsers(selected);
+      } else {
+        showUsers(users);
+      }
+    };
+
+    // ✅ Clear All Users
+    window.clearAllUsers = function() {
+      if (confirm("Are you sure you want to delete all user data?")) {
+        localStorage.removeItem("users");
+        users = [];
+        showUsers(users);
+        alert("All user data has been cleared.");
+      }
+    };
+  </script>
+
+  <style>
+    .selected {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .not-selected {
+      background-color: #f44336;
+      color: white;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  </style>
+</body>
+</html>

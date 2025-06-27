@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Registration</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Enter Your Details</h2>
+  <form id="userForm">
+    <input type="text" id="name" placeholder="Name" required /><br/>
+    <input type="tel" id="phone" placeholder="Phone Number" required /><br/>
+    <input type="number" id="age" placeholder="Age" required /><br/>
+    <input type="email" id="email" placeholder="Email" required /><br/>
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    document.getElementById("userForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const age = document.getElementById("age").value;
+      const email = document.getElementById("email").value;
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      users.push({ name, phone, age, email, selected: false });
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert("Registration successful!");
+      this.reset();
+    });
+  </script>
+</body>
+</html>
